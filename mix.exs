@@ -3,7 +3,7 @@ defmodule Gelixer.MixProject do
 
   def project do
     [
-      app: :gelixer,
+      app: :gelixir,
       version: "0.1.0",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
