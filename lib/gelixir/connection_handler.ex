@@ -1,6 +1,8 @@
 require Logger
 
 defmodule Gelixir.ConnectionHandler do
+  require Gelixir.Types.ClientState
+  require Gelixir.Types.RegisterMessage
   alias Gelixir.Types.ClientState, as: ClientState
   alias Gelixir.Types.RegisterMessage, as: RegisterMessage
 
@@ -50,7 +52,7 @@ defmodule Gelixir.ConnectionHandler do
     trimmed_packet = String.trim(packet)
     [command | data] = String.split(trimmed_packet, "|")
     case command do
-      "REGISTER" ->
+      RegisterMessage.command_tag ->
         [name, user_agent] = data
         register(%RegisterMessage{name: name, user_agent: user_agent}, state)
      _ -> {"Unknown command '#{command}'\n", state}
