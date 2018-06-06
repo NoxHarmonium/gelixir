@@ -16,7 +16,7 @@ defmodule Gelixir.ConnectionHandler do
 
   def init(_) do
     Logger.info("Connection handler started")
-    Process.flag(:trap_exit, :true)
+    Process.flag(:trap_exit, true)
     {:ok, %ClientState{}}
   end
 
@@ -52,14 +52,18 @@ defmodule Gelixir.ConnectionHandler do
   def handle_packet(packet, state) do
     trimmed_packet = String.trim(packet)
     [command | data] = String.split(trimmed_packet, "|")
+
     case command do
-      RegisterMessage.command_tag ->
+      RegisterMessage.command_tag() ->
         [name, user_agent] = data
         register(%RegisterMessage{name: name, user_agent: user_agent}, state)
-      UpdateLocationMessage.command_tag ->
-        [latitude, longitude] = Enum.map data, &Float.parse(&1)
+
+      UpdateLocationMessage.command_tag() ->
+        [latitude, longitude] = Enum.map(data, &Float.parse(&1))
         update_location(%UpdateLocationMessage{latitude: latitude, longitude: longitude}, state)
-      _ -> {"Unknown command '#{command}'\n", state}
+
+      _ ->
+        {"Unknown command '#{command}'\n", state}
     end
   end
 
@@ -68,6 +72,7 @@ defmodule Gelixir.ConnectionHandler do
   end
 
   def update_location(update_location_data, state) do
-    {"OK\n", %{state | latitude: update_location_data.latitude, longitude: update_location_data.longitude}}
+    {"OK\n",
+     %{state | latitude: update_location_data.latitude, longitude: update_location_data.longitude}}
   end
 end
