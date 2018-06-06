@@ -10,14 +10,14 @@ defmodule Gelixir.ConnectionHandler do
     GenServer.start_link(__MODULE__, :ok, opts)
   end
 
-  def init(args) do
+  def init(_) do
     Logger.info("Connection handler started")
     Process.flag(:trap_exit, :true)
     {:ok, %ClientState{}}
   end
 
-  def terminate(reason, state) do
-    Logger.info("Connection handler exited")
+  def terminate(reason) do
+    Logger.info("Connection handler exited. Reason: #{reason}")
     :ok
   end
 
@@ -36,12 +36,12 @@ defmodule Gelixir.ConnectionHandler do
     {:noreply, new_state}
   end
 
-  def handle_info({:tcp_closed, socket}, state) do
+  def handle_info({:tcp_closed, _}, state) do
     Logger.info("Socket has been closed")
     {:stop, :shutdown, state}
   end
 
-  def handle_info({:tcp_error, socket, reason}, state) do
+  def handle_info({:tcp_error, _, reason}, state) do
     Logger.info("Connection closed due to #{reason}")
     {:noreply, state}
   end
