@@ -3,8 +3,10 @@ require Logger
 defmodule Gelixir.ConnectionHandler do
   require Gelixir.Types.ClientState
   require Gelixir.Types.RegisterMessage
+  require Gelixir.Types.UpdateLocationMessage
   alias Gelixir.Types.ClientState, as: ClientState
   alias Gelixir.Types.RegisterMessage, as: RegisterMessage
+  alias Gelixir.Types.UpdateLocationMessage, as: UpdateLocationMessage
 
   use GenServer, restart: :temporary
 
@@ -32,7 +34,6 @@ defmodule Gelixir.ConnectionHandler do
   end
 
   def handle_info({:tcp, socket, packet}, state) do
-    Logger.info("Incoming packet")
     {response, new_state} = handle_packet(packet, state)
     :gen_tcp.send(socket, response)
     {:noreply, new_state}
@@ -55,11 +56,18 @@ defmodule Gelixir.ConnectionHandler do
       RegisterMessage.command_tag ->
         [name, user_agent] = data
         register(%RegisterMessage{name: name, user_agent: user_agent}, state)
-     _ -> {"Unknown command '#{command}'\n", state}
+      UpdateLocationMessage.command_tag ->
+        [latitude, longitude] = Enum.map data, &Float.parse(&1)
+        update_location(%UpdateLocationMessage{latitude: latitude, longitude: longitude}, state)
+      _ -> {"Unknown command '#{command}'\n", state}
     end
   end
 
   def register(register_data, state) do
     {"OK\n", %{state | name: register_data.name, user_agent: register_data.user_agent}}
+  end
+
+  def update_location(update_location_data, state) do
+    {"OK\n", %{state | latitude: update_location_data.latitude, longitude: update_location_data.longitude}}
   end
 end
