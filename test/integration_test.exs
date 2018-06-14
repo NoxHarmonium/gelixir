@@ -16,18 +16,25 @@ defmodule IntegrationTest do
   end
 
   test "server interaction", %{socket_a: socket_a, socket_b: socket_b} do
+    # Register and setup initial location
     assert send_and_recv(socket_a, "REGISTER|socket_a|exunit\n") == "OK|200|Registered\n"
     assert send_and_recv(socket_b, "REGISTER|socket_b|exunit\n") == "OK|200|Registered\n"
     assert send_and_recv(socket_a, "UPDATE_LOCATION|10.2|10.2\n") == "OK|200|Location Updated\n"
-    assert send_and_recv(socket_b, "UPDATE_LOCATION|10.2|10.2\n") == "OK|200|Location Updated\n"
 
-    {:ok, data} = :gen_tcp.recv(socket_a, 0, 1000)
-    Logger.info("DATA: #{inspect(data)}")
+    assert send_and_recv(socket_b, "UPDATE_LOCATION|10.2|10.2\n") == "OK|200|Location Updated\n"
+    recv(socket_a) == "UPDATE|socket_b|10.2|10.2\n"
+
+    assert send_and_recv(socket_a, "UPDATE_LOCATION|10.21|10.21\n") == "OK|200|Location Updated\n"
+    recv(socket_b) == "UPDATE|socket_a|10.6|10.6\n"
+  end
+
+  defp recv(socket) do
+    {:ok, data} = :gen_tcp.recv(socket, 0, 1000)
+    data
   end
 
   defp send_and_recv(socket, command) do
     :ok = :gen_tcp.send(socket, command)
-    {:ok, data} = :gen_tcp.recv(socket, 0, 1000)
-    data
+    recv(socket)
   end
 end
