@@ -1,6 +1,9 @@
 require Logger
 
 defmodule Gelixir.LocationManager do
+  @moduledoc """
+  Acts as an intermediate actor between Client actors to help them exchange location data.
+  """
   import Gelixir.Geography
 
   use GenServer
@@ -13,10 +16,11 @@ defmodule Gelixir.LocationManager do
     {:ok, %{:owner => owner, :name => name, :geo_hash => nil, :other_locations => %{}}}
   end
 
-  def handle_cast({}, state) do
-    {:noreply, state}
-  end
+  @doc """
+  Called by linked Client actors to report that their location has changed.
 
+  It will also broadcast the updated location to other LocationManager actors in the same geo hash.
+  """
   def handle_cast({:update_this_location, latitude, longitude}, state) do
     %{:geo_hash => previous_geohash} = state
     new_geohash = calculate_geohash(latitude, longitude)
@@ -34,6 +38,9 @@ defmodule Gelixir.LocationManager do
     {:noreply, state}
   end
 
+  @doc """
+  Called by other LocationManager actors in the same geo hash to report their location to the linked Client.
+  """
   def handle_cast({:update_other_location, pid, name, latitude, longitude}, state) do
     if pid != self() do
       Logger.info("Received update from #{name}: (lat: #{latitude} long: #{longitude})")
@@ -45,11 +52,7 @@ defmodule Gelixir.LocationManager do
     end
   end
 
-  def handle_call(_msg, _from, state) do
-    {:reply, :ok, state}
-  end
-
-  def broadcast_location(geo_hash, name, latitude, longitude) do
+  defp broadcast_location(geo_hash, name, latitude, longitude) do
     Registry.dispatch(Gelixir.HubRegistry, geo_hash, fn entries ->
       for {pid, _} <- entries,
           do: GenServer.cast(pid, {:update_other_location, self(), name, latitude, longitude})

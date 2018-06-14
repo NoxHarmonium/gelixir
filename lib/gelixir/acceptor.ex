@@ -1,6 +1,13 @@
 require Logger
 
 defmodule Gelixir.Acceptor do
+  @moduledoc """
+  Accepts new TCP connections and hands them off to new Client actors.
+  """
+
+  @doc """
+  Starts listening for new TCP connections on the specified port.
+  """
   def start_listening(port) do
     # The options below mean:
     #

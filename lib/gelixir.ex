@@ -1,10 +1,16 @@
 defmodule Gelixir do
+  @moduledoc """
+  The entry point of the Gelixir application.
+  """
+
   use Application
 
-  # See http://elixir-lang.org/docs/stable/elixir/Application.html
-  # for more information on OTP Applications
+  @doc """
+  Starts a new Gelixir application.
+
+  Starts up all the dependencies in a supervisor to make sure they stay running.
+  """
   def start(_type, _args) do
-    # Define workers and child supervisors to be supervised
     children = [
       {DynamicSupervisor, name: Gelixir.ConnectionSupervisor, strategy: :one_for_one},
       {Registry, name: Gelixir.SessionRegistry, keys: :unique},
@@ -16,8 +22,6 @@ defmodule Gelixir do
       )
     ]
 
-    # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
-    # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Gelixir.Supervisor]
     Supervisor.start_link(children, opts)
   end
