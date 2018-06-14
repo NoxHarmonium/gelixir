@@ -16,12 +16,11 @@ defmodule Gelixir.ConnectionHandler do
 
   def init(_) do
     Logger.info("Connection handler started")
-    {:ok, pid} = Gelixir.HubCoordinator.start_link({self()})
-    {:ok, %ClientState{:hub_coordinator_pid => pid}}
+    {:ok, %ClientState{}}
   end
 
-  def handle_cast({:update, pid, latitude, longitude}, state) do
-    :gen_tcp.send(state.socket, "UPDATE|#{inspect(pid)}|#{latitude}|#{longitude}\n")
+  def handle_cast({:update, name, latitude, longitude}, state) do
+    :gen_tcp.send(state.socket, "UPDATE|#{name}|#{latitude}|#{longitude}\n")
     {:noreply, state}
   end
 
@@ -85,17 +84,19 @@ defmodule Gelixir.ConnectionHandler do
     Registry.register(Gelixir.SessionRegistry, register_data.name, {})
     Logger.info("Registered session for #{register_data.name}")
 
+    {:ok, pid} = Gelixir.LocationManager.start_link({self(), register_data.name})
+
     {"OK|200|Registered\n",
      %{
        state
        | name: register_data.name,
          user_agent: register_data.user_agent,
-         session_started: true
+         session_started: true,
+         location_manager_pid: pid
      }}
   end
 
   def update_location(update_location_data, state) do
-    %{:hub_coordinator_pid => hub_coordinator_pid} = state
     %{:latitude => latitude, :longitude => longitude} = update_location_data
 
     case state do
@@ -103,7 +104,8 @@ defmodule Gelixir.ConnectionHandler do
         {"FAIL|400|Registration Required\n", state}
 
       _ ->
-        GenServer.cast(hub_coordinator_pid, {:update_this_location, latitude, longitude})
+        %{:location_manager_pid => location_manager_pid} = state
+        GenServer.cast(location_manager_pid, {:update_this_location, latitude, longitude})
 
         {"OK|200|Location Updated\n",
          %{

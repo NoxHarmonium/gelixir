@@ -22,10 +22,10 @@ defmodule IntegrationTest do
     assert send_and_recv(socket_a, "UPDATE_LOCATION|10.2|10.2\n") == "OK|200|Location Updated\n"
 
     assert send_and_recv(socket_b, "UPDATE_LOCATION|10.2|10.2\n") == "OK|200|Location Updated\n"
-    recv(socket_a) == "UPDATE|socket_b|10.2|10.2\n"
+    assert recv(socket_a) == "UPDATE|socket_b|10.2|10.2\n"
 
     assert send_and_recv(socket_a, "UPDATE_LOCATION|10.21|10.21\n") == "OK|200|Location Updated\n"
-    recv(socket_b) == "UPDATE|socket_a|10.6|10.6\n"
+    assert recv(socket_b) == "UPDATE|socket_a|10.21|10.21\n"
   end
 
   defp recv(socket) do
