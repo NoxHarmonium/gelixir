@@ -1,5 +1,7 @@
 # Gelixir
 
+[![Build Status](https://travis-ci.org/NoxHarmonium/gelixir.svg?branch=master)](https://travis-ci.org/NoxHarmonium/gelixir)
+
 A toy project to learn about Elixir and actor concurrency.
 The theme of the project is tracking the GPS coords
 of a large amount of clients
