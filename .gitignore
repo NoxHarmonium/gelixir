@@ -20,7 +20,7 @@ erl_crash.dump
 *.ez
 
 # Ignore package tarball (built via "mix hex.build").
-gelixer-*.tar
+gelixir-*.tar
 
 # Created by https://www.gitignore.io/api/erlang,elixir,intellij
 

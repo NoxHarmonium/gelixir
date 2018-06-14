@@ -1,4 +1,4 @@
-defmodule Gelixer.MixProject do
+defmodule Gelixir.MixProject do
   use Mix.Project
 
   def project do

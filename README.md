@@ -1,4 +1,4 @@
-# Gelixer
+# Gelixir
 
 A toy project to learn about Elixir and actor concurrency.
 The theme of the project is tracking the GPS coords
@@ -21,17 +21,17 @@ The name comes from a portmanteau of the words 'geo' and 'Elixir'.
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `gelixer` to your list of dependencies in `mix.exs`:
+by adding `gelixir` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:gelixer, "~> 0.1.0"}
+    {:gelixir, "~> 0.1.0"}
   ]
 end
 ```
 
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/gelixer](https://hexdocs.pm/gelixer).
+be found at [https://hexdocs.pm/gelixir](https://hexdocs.pm/gelixir).
 
