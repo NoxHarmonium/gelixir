@@ -1,6 +1,6 @@
 require Logger
 
-defmodule Gelixir.ConnectionHandler do
+defmodule Gelixir.Client do
   require Gelixir.Types.ClientState
   require Gelixir.Types.RegisterMessage
   require Gelixir.Types.UpdateLocationMessage

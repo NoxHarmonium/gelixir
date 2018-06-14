@@ -22,8 +22,7 @@ defmodule Gelixir.Acceptor do
   defp loop_acceptor(listen_socket) do
     {:ok, socket} = :gen_tcp.accept(listen_socket)
 
-    {:ok, pid} =
-      DynamicSupervisor.start_child(Gelixir.ConnectionSupervisor, Gelixir.ConnectionHandler)
+    {:ok, pid} = DynamicSupervisor.start_child(Gelixir.ConnectionSupervisor, Gelixir.Client)
 
     GenServer.call(pid, {:set_socket, socket})
     :ok = :gen_tcp.controlling_process(socket, pid)
