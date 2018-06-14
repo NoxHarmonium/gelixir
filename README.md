@@ -10,13 +10,11 @@ The name comes from a portmanteau of the words 'geo' and 'Elixir'.
 ### Goals:
 
 - Create a simple server that can accept any number of tcp clients. ✓
-- Store and update the state (location, name, user agent) of a client.
-- Register clients with a local hub that keeps them up to date with the addresses of nearby clients.
-- Get clients to update other nearby clients with their state without an intermediate actor.
+- Store and update the state (location, name, user agent) of a client. ✓
+- Register clients with a local hub that keeps them up to date with the addresses of nearby clients. ✓
+- Cleanup code
 - Run a test with a massive amount of connections.
 - Bonus: Write the same thing in something I'm more familiar with (e.g. Node) and compare performance.
-
-
 
 ## Installation
 
