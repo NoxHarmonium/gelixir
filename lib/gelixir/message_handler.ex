@@ -2,7 +2,7 @@ require Logger
 
 defmodule Gelixir.MessageHandler do
   @moduledoc """
-  Manages messages sent via a tcp client.
+  Parses messages received by the Client actor and dispatches responses.
   """
 
   require Gelixir.Types.MessageHandlerState
