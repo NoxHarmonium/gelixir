@@ -1,11 +1,6 @@
 defmodule Gelixir.Types.ClientState do
   defstruct [
-    :name,
-    :session_started,
-    :location_manager_pid,
-    :user_agent,
-    :latitude,
-    :longitude,
+    :message_handler_pid,
     :socket
   ]
 end

@@ -12,8 +12,14 @@ defmodule Gelixir.LocationManager do
     GenServer.start_link(__MODULE__, opts)
   end
 
-  def init({owner, name}) do
-    {:ok, %{:owner => owner, :name => name, :geo_hash => nil, :other_locations => %{}}}
+  def init({client_responder_pid, name}) do
+    {:ok,
+     %{
+       :client_responder_pid => client_responder_pid,
+       :name => name,
+       :geo_hash => nil,
+       :other_locations => %{}
+     }}
   end
 
   @doc """
@@ -22,7 +28,8 @@ defmodule Gelixir.LocationManager do
   It will also broadcast the updated location to other LocationManager actors in the same geo hash.
   """
   def handle_cast({:update_this_location, latitude, longitude}, state) do
-    %{:geo_hash => previous_geohash} = state
+    Logger.info("Updating [#{state.name}] with (#{latitude}, #{longitude})")
+    previous_geohash = state.geo_hash
     new_geohash = calculate_geohash(latitude, longitude)
 
     if previous_geohash != new_geohash do
@@ -30,8 +37,7 @@ defmodule Gelixir.LocationManager do
         "New geohash (#{new_geohash}) differs from old geohash (#{previous_geohash}). Re/registering..."
       )
 
-      Registry.unregister(Gelixir.HubRegistry, previous_geohash)
-      Registry.register(Gelixir.HubRegistry, new_geohash, {})
+      re_register(previous_geohash, new_geohash)
     end
 
     broadcast_location(new_geohash, state.name, latitude, longitude)
@@ -44,12 +50,17 @@ defmodule Gelixir.LocationManager do
   def handle_cast({:update_other_location, pid, name, latitude, longitude}, state) do
     if pid != self() do
       Logger.info("Received update from #{name}: (lat: #{latitude} long: #{longitude})")
-      GenServer.cast(state.owner, {:update, name, latitude, longitude})
+      GenServer.cast(state.client_responder_pid, {:respond, :update, name, latitude, longitude})
       updated_locations = Map.put(state.other_locations, name, {latitude, longitude})
       {:noreply, %{state | other_locations: updated_locations}}
     else
       {:noreply, state}
     end
+  end
+
+  defp re_register(previous_geohash, new_geohash) do
+    Registry.unregister(Gelixir.HubRegistry, previous_geohash)
+    Registry.register(Gelixir.HubRegistry, new_geohash, {})
   end
 
   defp broadcast_location(geo_hash, name, latitude, longitude) do
