@@ -14,10 +14,6 @@ defmodule Gelixir.MessageHandler do
 
   use GenServer, restart: :temporary
 
-  # Command strings
-  @register "REGISTER"
-  @update_location "UPDATE_LOCATION"
-
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts)
   end
@@ -29,17 +25,20 @@ defmodule Gelixir.MessageHandler do
      %MessageHandlerState{client_pid: client_pid, client_responder_pid: client_responder_pid}}
   end
 
+  @doc """
+  Takes a message/packet received from the Client and dispatches responses.
+  """
   def handle_cast({:handle_message, packet}, state) do
     trimmed_packet = String.trim(packet)
     [command | data] = String.split(trimmed_packet, "|")
 
     new_state =
       case command do
-        @register ->
+        "REGISTER" ->
           [name, user_agent] = data
           register(%RegisterMessage{name: name, user_agent: user_agent}, state)
 
-        @update_location ->
+        "UPDATE_LOCATION" ->
           [latitude, longitude] = Enum.map(data, &String.to_float(&1))
           update_location(%UpdateLocationMessage{latitude: latitude, longitude: longitude}, state)
 
