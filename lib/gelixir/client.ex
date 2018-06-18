@@ -15,14 +15,13 @@ defmodule Gelixir.Client do
   end
 
   def init(_) do
-    Logger.info("Client started")
-    {:ok, client_responder_pid} = Gelixir.ClientResponder.start_link({self()})
-    {:ok, session_manager_pid} = Gelixir.SessionManager.start_link({})
+    Logger.debug("Starting client...")
 
-    {:ok, message_handler_pid} =
-      Gelixir.MessageHandler.start_link({self(), client_responder_pid, session_manager_pid})
-
-    {:ok, %ClientState{message_handler_pid: message_handler_pid}}
+    with {:ok, message_handler_pid} <- Gelixir.MessageHandler.start_link({self()}) do
+      {:ok, %ClientState{message_handler_pid: message_handler_pid}}
+    else
+      err -> {:error, "Could not start child processes: #{inspect(err)}"}
+    end
   end
 
   @doc """

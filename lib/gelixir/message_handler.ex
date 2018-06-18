@@ -18,15 +18,20 @@ defmodule Gelixir.MessageHandler do
     GenServer.start_link(__MODULE__, opts)
   end
 
-  def init({client_pid, client_responder_pid, session_manager_pid}) do
+  def init({client_pid}) do
     Logger.info("Message handler started")
 
-    {:ok,
-     %MessageHandlerState{
-       client_pid: client_pid,
-       client_responder_pid: client_responder_pid,
-       session_manager_pid: session_manager_pid
-     }}
+    with {:ok, client_responder_pid} <- Gelixir.ClientResponder.start_link({client_pid}),
+         {:ok, session_manager_pid} <- Gelixir.SessionManager.start_link({}) do
+      {:ok,
+       %MessageHandlerState{
+         client_pid: client_pid,
+         client_responder_pid: client_responder_pid,
+         session_manager_pid: session_manager_pid
+       }}
+    else
+      err -> {:error, "Could not start child processes: #{inspect(err)}"}
+    end
   end
 
   @doc """

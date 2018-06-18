@@ -5,7 +5,7 @@ defmodule Gelixir.ClientResponder do
   Prepares the responses and forwards them onto the Client on behalf of other actors.
   """
 
-  use GenServer, restart: :temporary
+  use GenServer
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts)
