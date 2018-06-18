@@ -5,6 +5,7 @@ defmodule Gelixir.Types.MessageHandlerState do
     :client_pid,
     :client_responder_pid,
     :location_manager_pid,
+    :session_manager_pid,
     :user_agent
   ]
 end

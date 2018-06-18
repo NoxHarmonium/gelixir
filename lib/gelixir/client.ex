@@ -15,9 +15,13 @@ defmodule Gelixir.Client do
   end
 
   def init(_) do
-    Logger.info("Connection handler started")
+    Logger.info("Client started")
     {:ok, client_responder_pid} = Gelixir.ClientResponder.start_link({self()})
-    {:ok, message_handler_pid} = Gelixir.MessageHandler.start_link({self(), client_responder_pid})
+    {:ok, session_manager_pid} = Gelixir.SessionManager.start_link({})
+
+    {:ok, message_handler_pid} =
+      Gelixir.MessageHandler.start_link({self(), client_responder_pid, session_manager_pid})
+
     {:ok, %ClientState{message_handler_pid: message_handler_pid}}
   end
 

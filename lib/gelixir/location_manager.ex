@@ -13,6 +13,8 @@ defmodule Gelixir.LocationManager do
   end
 
   def init({client_responder_pid, name}) do
+    Logger.info("Location manager started")
+
     {:ok,
      %{
        :client_responder_pid => client_responder_pid,
@@ -27,7 +29,7 @@ defmodule Gelixir.LocationManager do
 
   It will also broadcast the updated location to other LocationManager actors in the same geo hash.
   """
-  def handle_cast({:update_this_location, latitude, longitude}, state) do
+  def handle_call({:update_this_location, latitude, longitude}, _, state) do
     Logger.info("Updating [#{state.name}] with (#{latitude}, #{longitude})")
     previous_geohash = state.geo_hash
     new_geohash = calculate_geohash(latitude, longitude)
@@ -41,7 +43,7 @@ defmodule Gelixir.LocationManager do
     end
 
     broadcast_location(new_geohash, state.name, latitude, longitude)
-    {:noreply, state}
+    {:reply, {:ok}, state}
   end
 
   @doc """
@@ -49,7 +51,10 @@ defmodule Gelixir.LocationManager do
   """
   def handle_cast({:update_other_location, pid, name, latitude, longitude}, state) do
     if pid != self() do
-      Logger.info("Received update from #{name}: (lat: #{latitude} long: #{longitude})")
+      Logger.info(
+        "#{state.name} => Received update from #{name}: (lat: #{latitude} long: #{longitude})"
+      )
+
       GenServer.cast(state.client_responder_pid, {:respond, :update, name, latitude, longitude})
       updated_locations = Map.put(state.other_locations, name, {latitude, longitude})
       {:noreply, %{state | other_locations: updated_locations}}

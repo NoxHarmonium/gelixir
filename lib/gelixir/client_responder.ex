@@ -12,7 +12,7 @@ defmodule Gelixir.ClientResponder do
   end
 
   def init({client_pid}) do
-    Logger.info("Connection handler started")
+    Logger.info("Client responder started")
     {:ok, %{client_pid: client_pid}}
   end
 

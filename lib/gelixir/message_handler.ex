@@ -18,11 +18,15 @@ defmodule Gelixir.MessageHandler do
     GenServer.start_link(__MODULE__, opts)
   end
 
-  def init({client_pid, client_responder_pid}) do
-    Logger.info("Connection handler started")
+  def init({client_pid, client_responder_pid, session_manager_pid}) do
+    Logger.info("Message handler started")
 
     {:ok,
-     %MessageHandlerState{client_pid: client_pid, client_responder_pid: client_responder_pid}}
+     %MessageHandlerState{
+       client_pid: client_pid,
+       client_responder_pid: client_responder_pid,
+       session_manager_pid: session_manager_pid
+     }}
   end
 
   @doc """
@@ -51,20 +55,13 @@ defmodule Gelixir.MessageHandler do
   end
 
   defp register(register_data, state) do
-    # Sessions must be unique, so kill the existing session
-    case Registry.lookup(Gelixir.SessionRegistry, register_data.name) do
-      [existing_client] -> GenServer.call(existing_client, :stop)
-      [] -> {}
-    end
-
-    Registry.register(Gelixir.SessionRegistry, register_data.name, {})
-    Logger.info("Registered session for #{register_data.name}")
+    {:ok} = GenServer.call(state.session_manager_pid, {:register, register_data.name})
 
     {:ok, pid} =
       Gelixir.LocationManager.start_link({state.client_responder_pid, register_data.name})
 
     GenServer.cast(state.client_responder_pid, {:respond, :registration_success})
-    %{state | location_manager_pid: pid}
+    %{state | location_manager_pid: pid, session_started: true}
   end
 
   defp update_location(update_location_data, state) do
@@ -76,8 +73,9 @@ defmodule Gelixir.MessageHandler do
         state
 
       _ ->
-        %{:location_manager_pid => location_manager_pid} = state
-        GenServer.cast(location_manager_pid, {:update_this_location, latitude, longitude})
+        {:ok} =
+          GenServer.call(state.location_manager_pid, {:update_this_location, latitude, longitude})
+
         GenServer.cast(state.client_responder_pid, {:respond, :location_updated})
         state
     end
